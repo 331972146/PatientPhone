@@ -1,0 +1,25 @@
+<ion-view view-title='任务'>
+    <ion-nav-buttons side="primary">
+      <button class="button button-clear" ng-click="toggleLeftMenu()">
+            <i class="icon ion-navicon"></i>
+      </button>
+    </ion-nav-buttons>
+    <ion-content scroll="false">
+        <ion-list>
+            <ion-item href="#/tab/tasks/{{task.taskID}}" ng-repeat="task in tasklist" class="item-thumbnail-left">
+
+                <img ng-src="{{task.taskicon}}">
+
+                <h2>{{task.taskname}}</h2>
+
+                <ion-option-button class="button-positive" ng-click="">
+                    完成
+                </ion-option-button>
+                <ion-option-button class="button-calm" ng-click="">
+                    添加提醒
+                </ion-option-button>
+
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>

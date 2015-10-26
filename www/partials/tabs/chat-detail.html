@@ -1,0 +1,22 @@
+<ion-view view-title="交流">
+  <ion-nav-buttons side="secondary" class="button icon" >
+    <div class="item-avatar-right">
+      <ion-item href="#/tab/task/personalinfo">
+        <img ng-src="{{chat.face}}" >
+      </ion-item>
+    </div>
+  </ion-nav-buttons>   
+
+  <ion-content class="padding" start-y="120">
+    <div ng-repeat="item in Dialog">
+      <my-smsdrt time="{{item.SendDateTime}}" content="{{item.Content}}" type="{{item.IDFlag}}" face="{{chat.face}}"></my-smsdrt>
+    </div>      
+  </ion-content>  
+  <ion-footer-bar >
+    <label class="item item-input">
+      <span class="input-label">请输入</span>
+      <p><input type="text" placeholder="" ng-model="aa.SMScontent" class='button-full'></p>
+    </label>
+    <button class="button  button-positive" ng-click="submitSMS()">发送</button>
+  </ion-footer-bar>
+</ion-view>

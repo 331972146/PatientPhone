@@ -1,0 +1,71 @@
+<ion-view view-title="个人信息">
+  <ion-nav-buttons side="primary">
+      <button class="button button-icon ion-ios-arrow-left" ng-click="nvGoback()">
+      </button>
+    </ion-nav-buttons>
+    
+      <ion-content>
+    <style>
+.list .item.item-accordion {
+  line-height: 38px;
+  padding-top: 0;
+  padding-bottom: 0;
+  transition: 0.09s all linear;
+}
+.list .item.item-accordion.ng-hide {
+  line-height: 0px;
+}
+.list .item.item-accordion.ng-hide-add,
+.list .item.item-accordion.ng-hide-remove {
+  display: block !important;
+}
+    </style>
+    <ion-list>
+        <div ng-repeat="group in groups">
+          <ion-item class="item-stable"
+                    ng-click="toggleGroup(group)"
+                    ng-class="{active: isGroupShown(group)}">
+              <!-- <i class="icon" ng-class="isGroupShown(group) ? 'ion-minus' : 'ion-plus'"></i> -->
+              <i class="icon" ng-class="isGroupShown(group) ? 'ion-android-arrow-dropdown' : 'ion-android-arrow-dropright'"></i>
+            &nbsp;
+            {{group.name}}
+          </ion-item>
+          <ion-item class="item-accordion"
+                    ng-repeat="item in group.items"
+                    ng-show="isGroupShown(group)">
+            
+            <div class="item-input-inset">
+              {{item}}  &nbsp;
+              <ion-checkbox ng-checked="true">男</ion-checkbox>
+              <ion-checkbox ng-checked="true">女</ion-checkbox></div>
+          </ion-item>
+        </div>
+      </ion-list>
+   
+    <!-- <div class="list card">
+      <div class="item item-divider">Recent Updates</div>
+      <div class="item item-body">
+        <div>
+          There is a fire in <b>sector 3</b>
+        </div>
+      </div>
+    </div>
+    <div class="list card">
+      <div class="item item-divider">Health</div>
+      <div class="item item-body">
+        <div>
+          You ate an apple today!
+        </div>
+      </div>
+    </div>
+    <div class="list card">
+      <div class="item item-divider">Upcoming</div>
+      <div class="item item-body">
+        <div>
+          You have <b>29</b> meetings on your calendar tomorrow.
+        </div>
+      </div>
+    </div> -->
+
+  </ion-content>
+</ion-view>
