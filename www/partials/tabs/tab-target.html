@@ -9,20 +9,18 @@
       <a class="button icon-left ion-calendar button-clear" href="#/healthCoach/healthCoachList"></a>
     </ion-nav-buttons> class="has-header"-->
 
-
-
-  <ion-content >
+<ion-content >
  <div class="bar bar-calm item-input-inset">
-   <button class="button button-icon icon ion-navicon" style="text-align:left;padding-right:20px" ng-click="toggleLeftMenu()"></button> 
-   <h1 class="title">选择专员</h1>
+   <button class="button button-icon icon ion-navicon" ng-click="toggleLeftMenu()"></button> 
+   <h1 class="title">目标</h1>
 </div>
 
- <div class="button-bar bar-light">
-          <a class="button" href="#/tab/target/graph">First</a>
-          <a class="button" href="#/tab/target/recordlist">Second</a>
-</div>
+<!--  <div class="button-bar bar-light">
+          <a class="button button-calm" href="#/tab/target/graph" >依从率图</a>
+          <a class="button" href="#/tab/target/recordlist">体征表</a>
+</div> -->
 
-  <ion-nav-view name="tab-target1"></ion-nav-view>
+  <ion-nav-view name="tab-targetChange"></ion-nav-view>
 <!-- <div class="row">
         <div class="col" style="text-align:center;">
           <p><i class="icon ion-arrow-swap"></i>体征选择</p>

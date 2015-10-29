@@ -1,22 +1,19 @@
-<ion-view view-title="交流">
-  <ion-nav-buttons side="secondary" class="button icon" >
-    <div class="item-avatar-right">
-      <ion-item href="#/tab/task/personalinfo">
-        <img ng-src="{{chat.face}}" >
-      </ion-item>
-    </div>
-  </ion-nav-buttons>   
-
-  <ion-content class="padding" start-y="120">
-    <div ng-repeat="item in Dialog">
-      <my-smsdrt time="{{item.SendDateTime}}" content="{{item.Content}}" type="{{item.IDFlag}}" face="{{chat.face}}"></my-smsdrt>
-    </div>      
-  </ion-content>  
-  <ion-footer-bar >
-    <label class="item item-input">
-      <span class="input-label">请输入</span>
-      <p><input type="text" placeholder="" ng-model="aa.SMScontent" class='button-full'></p>
-    </label>
-    <button class="button  button-positive" ng-click="submitSMS()">发送</button>
-  </ion-footer-bar>
+<ion-view view-title="{{DoctorName}}" id = "userMessagesView">    
+    <ion-content class="padding" start-y="120">
+        <div ng-repeat="item in Dialog">
+            <my-smsdrt time="{{item.SendDateTime}}" content="{{item.Content}}" type="{{item.IDFlag}}" face="{{item.IDFlag === 'Send' && myImage || imageURL}}"></my-smsdrt> 
+        </div>      
+    </ion-content>      
+    <form name="sendMessageForm" ng-submit="sendMessage(sendMessageForm)" novalidate>
+        <ion-footer-bar class="bar-stable item-input-inset message-footer" keyboard-attach>
+            <label class="item-input-wrapper">
+                <textarea ng-model="Dialog.SMScontent" value="" placeholder="请输入..." required minlength="1" maxlength="500" msd-elastic></textarea>
+            </label>
+            <div class="footer-btn-wrap">
+                <button class="button button-icon icon ion-android-send footer-btn" type="submit"
+                ng-disabled="!Dialog.SMScontent || Dialog.SMScontent === ''" ng-click="submitSMS()">
+                </button>
+            </div>
+        </ion-footer-bar>
+    </form>
 </ion-view>

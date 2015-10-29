@@ -3,7 +3,7 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires' 
-angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubme.controllers','ngCordova'])
+angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubme.controllers','ngCordova','ionic-timepicker'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -57,80 +57,79 @@ angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubm
       abstract: true,
       url: '/tab',
       templateUrl: 'partials/tabs/tabs.html',
+      controller:'SlidePageCtrl'
     })
-    .state('tab.tasklist', {
+     .state('tab.tasklist', {
       url: '/tasklist',
       views: {
         'tab-tasks': {
-          templateUrl: 'partials/tabs/tab.task.tasklist.html',
-          controller: 'TaskListCtrl'
+          templateUrl: 'partials/tabs/index.task.tasklist.html',
+         controller: 'tasklistcontroller'
         }
       }
     })
-    .state('tab.tasks', {
-      url: '/tasks',
-      abstract: true,
-      views: {
-        'tab-tasks': {
+    .state('tab.task',{
+      url:"/task",
+      abstract:true,
+      views:{
+        'tab-tasks':{
           template:'<ion-nav-view/>'
         }
       }
     })
-    .state('tab.tasks.tl', {
+   //任务列表跳转
+    .state('tab.task.tl',{
       url:"/:tl",
         templateUrl:function($stateParams)
         {
           console.log("$stateParams.tl is "+$stateParams.tl);
-          return "partials/tabs/tab.task."+$stateParams.tl+".html";
+          switch($stateParams.tl)
+          {
+            //case 'tasklist':return "partials/tabs/index.task.tasklist.html";break;
+            case 'healtheducation':return "partials/tabs/index.task.healtheducation.html";break;
+            case 'bpm':return "partials/tabs/index.task.bpm.html";break;
+            case 'measureweight':return "partials/tabs/index.task.measureweight.html";break;
+            default:return "partials/tabs/index.task.taskdetail.html";break;
+          }
         },
         controllerProvider:function($stateParams)
         {
-            return $stateParams.tl + 'controller';
-       }
-    })  
-    // .state('tab.target', {
-    //   url: '/target',
-    //   views: {
-    //     'tab-target': {
-    //       templateUrl: 'partials/tabs/tab-target.html',
-    //       controller: 'TargetCtrl'
-    //     }
-    //   }
-    // })
-    .state('tab.target', {
-      url: '/target',
-      abstract: true,
-      views: {
-        'tab-target': {
-          templateUrl: 'partials/tabs/tab-target.html',
-          controller: 'TargetCtrl'
+          switch($stateParams.tl)
+          {
+            case 'tasklist':return 'tasklistcontroller';break;
+            case 'healtheducation':return "healtheducationcontroller";break;
+            case 'bpm':return "bpmcontroller";break;
+            case 'measureweight':return "measureweightcontroller";break;
+            default:return 'taskdetailcontroller';break;
+          }
         }
-      }
+    }) 
+    .state('tab.targetGraph', {
+        url: '/targetGraph',
+        views: {
+          'tab-target': {
+            templateUrl: 'partials/tabs/tab.target.graph.html',
+            controller: 'graphcontroller'
+          }
+
+        }, onEnter:function(){
+         //if(window.localStorage.getItem("ss")=="1"){
+          //console.log("a");
+          //window.location.reload(true);
+         //}
+
+        }
     })
-    // .state('tab.target1', {
-    //   url: '/target',
-    //   abstract: true,
-    //   views: {
-    //     'tab-target': {
-    //       template:'<ion-nav-view/>'
-    //     }
-    //   }
-    // })
-    .state('tab.target.tl', {
-      url:"/:tl",
-      views: {
-        'tab-target1': {
-        templateUrl:function($stateParams)
-        {
-          return "partials/tabs/tab.target."+$stateParams.tl+".html";
-        },
-        controllerProvider:function($stateParams)
-        {
-            return $stateParams.tl + 'controller';
-       }
-     }}
+    .state('tab.recordList', {
+        url: '/recordList',
+        views: {
+          'tab-target': {
+            templateUrl: 'partials/tabs/tab.target.recordList.html',
+            controller: 'recordListcontroller'
+          }
+        }
     })
-    .state('tab.chats', {
+.state('tab.chats', {
       url: '/chats',
       abstract: true,
       views:{
@@ -138,31 +137,31 @@ angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubm
           template:'<ion-nav-view/>'
         }
       }
-    })
-    .state('tab.chats.r', {
-        url: '/:tt',
-        // views: {
-        //   '': {
-            templateUrl: function ($stateParams){
-              if ($stateParams.tt=='list')
-              {
-                return 'partials/tabs/tab-chats.html';
-              }
-              else return 'partials/tabs/chat-detail.html';   
-            },
-            controllerProvider: function($stateParams) {
-              if($stateParams.tt=='list')
-              {
-                return 'ChatsCtrl';
-              }
-              else
-              {
-                return 'ChatDetailCtrl';
-              }
-            }    
-       //    } 
-       // }     
-    })
+})
+.state('tab.chats.r', {
+    url: '/:tt',
+    templateUrl: function ($stateParams){
+
+      if($stateParams.tt=='contactList')
+      {
+        return 'partials/tabs/contactList.html';
+        
+      }else
+      {
+        return 'partials/tabs/chat-detail.html';
+       
+      }      
+    },
+   controllerProvider: function($stateParams) {
+      if($stateParams.tt=='contactList')
+      {
+        return 'contactListCtrl';
+      }else
+      {
+        return 'ChatDetailCtrl';
+      }
+  }
+  })
     .state('healthCoach', {
       url: '/healthCoach',
       abstract: true,
@@ -194,38 +193,59 @@ angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubm
     });
   
   //左侧菜单
- $stateProvider
-    .state('sideMenu',{
-      abstract:true,
-      url:"/sideMenu",
-      template:'<ion-nav-view/>'
-    })
-    .state('sideMenu.changePassword', {
-        url: '/changePassword',
-        views: {
-          '': {
-            templateUrl: 'partials/sideMenu/changePassword.html',
-            controller: 'changePasswordCtrl'
-          }
-        }
-    })
-    .state('sideMenu.personalInfo', {
-        url: '/personalInfo',
-        views: {
-          '': {
-            templateUrl: 'partials/sideMenu/personalInfo.html',
-            controller: 'PersonalInfo'
-          }
-        }
-    })
-    ;  
+ // $stateProvider
+ //    .state('sideMenu',{
+ //      abstract:true,
+ //      url:"/sideMenu",
+ //      template:'<ion-nav-view/>'
+ //    })
+ //    .state('sideMenu.changePassword', {
+ //        url: '/changePassword',
+ //        views: {
+ //          '': {
+ //            templateUrl: 'partials/sideMenu/changePassword.html',
+ //            controller: 'changePasswordCtrl'
+ //          }
+ //        }
+ //    })
+ //    .state('sideMenu.personalInfo', {
+ //        url: '/personalInfo',
+ //        views: {
+ //          '': {
+ //            templateUrl: 'partials/sideMenu/personalInfo.html',
+ //            controller: 'PersonalInfo'
+ //          }
+ //        }
+ //    })
+ //    ;  
   
+//目录
+ $stateProvider
+    .state('catalog',{
+      abstract:true,
+      url:"/catalog",
+      template:'<ion-nav-view/>',
+      controller:'SlidePageCtrl'
+    })
+    .state('catalog.ct',{
+      url:"/:id",
+      templateUrl:function($stateParams)
+      {
+        console.log("$stateParams. is "+$stateParams.id);
+        // return "partials/index.task.measureweight.html";
+        return "partials/catalog/catalog."+$stateParams.id+".html";
+      },
+      controllerProvider:function($stateParams)
+      {
+        return $stateParams.id + 'controller';
+      }
+    });
+
   $urlRouterProvider.otherwise('/signin');
 })
 // --------不同平台的相关设置----------------
 .config(function($ionicConfigProvider) {
   $ionicConfigProvider.views.maxCache(5);
-
   // note that you can also chain configs
   $ionicConfigProvider.tabs.position('bottom');
   $ionicConfigProvider.tabs.style('standard');

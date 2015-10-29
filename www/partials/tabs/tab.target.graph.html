@@ -1,38 +1,46 @@
 
-<ion-view view-title="记录" style="height:600px;"  cache-view="false" hide-nav-bar="true">
-  <!-- <ion-nav-buttons side="primary">
-   <button class="button button-clear" ng-click="toggleLeftMenu()">
+<ion-view view-title="记录">
+  <ion-nav-buttons side="primary"><!-- style="height:600px;" hide-nav-bar="true" -->
+    <button class="button button-clear" ng-click="toggleLeftMenu()">
             <i class="icon ion-navicon"></i>
     </button>
-    </ion-nav-buttons>
-    <ion-nav-buttons side="secondary">
-      <a class="button icon-left ion-calendar button-clear" href="#/healthCoach/healthCoachList"></a>
-    </ion-nav-buttons> -->
+  </ion-nav-buttons>
+  <ion-nav-buttons side="secondary">
+    <a class="button icon-left ion-calendar button-clear" href="#/healthCoach/healthCoachList"></a>
+  </ion-nav-buttons>
 
+  <ion-content class="padding">
+    <div class="button-bar bar-light">
+      <a class="button button-energized" href="#/tab/targetGraph" >依从率图</a>
+      <a class="button" href="#/tab/recordList">体征表</a>
+    </div>
 
-<ion-refresher pulling-text="下拉刷新" on-refresh="doRefresh()"></ion-refresher>
+    <div class="row">
+      <div class="col" style="text-align:center;">
+         <p><i class="icon ion-arrow-swap"></i>体征选择</p>
+         <select ng-model="vitalInfo" ng-change="changeVitalInfo(vitalInfo)" ng-options="option.SignName for option in options" class="select-block select-calm">
+         </select>
 
-<button class="button" ng-click="reload()">dd</button>
-<div class="row">
-        <div class="col" style="text-align:center;">
-          <p><i class="icon ion-arrow-swap"></i>体征选择</p>
-            <select class="select-block select-calm">
-              <option selected="">收缩压</option>
-              <option >舒张压</option>
-              <option>脉率</option>
-            </select>
-          
-        </div>
-        {{lineStacked}}
-        <div class="col col-67" style="text-align:center">
-          <p><img src="img/original.png"> 初始值：150mmHg</p>
-          <p><img src="img/target.png"> 目标值：130mmHg</p>
-        </div>
       </div>
-<amchart ng='zz'></amchart>
-  <div style="text-align:center;margin-top:20px;">    
-    <p style="color:#2894FF;font-size:16px;">计划进度20%，离结束还有20天</p>
-  </div>
-<ion-infinite-scroll on-infinite="loadMore()" distance="1%" icon="ion-loading-c"></ion-infinite-scroll>
+      <div class="col col-67" style="text-align:center">
+         <p><img src="img/original.png"> 初始值：150mmHg</p>
+         <p><img src="img/target.png"> 目标值：130mmHg</p>
+       </div>
+    </div>
+
+    <div style='width: 80%; height: 400px;margin-left:10%;' id='chartdiv'>
+    </div>
+    <div style="text-align:center;margin-top:20px;">    
+      <p style="color:#2894FF;font-size:16px;">计划进度20%，离结束还有20天</p>
+    </div>
+    
+  </ion-content>
 </ion-view>
 
+      <!-- <select class="select-block select-calm">
+        <option selected="">收缩压</option>
+        <option >舒张压</option>
+        <option>脉率</option>
+      </select> -->
+      <!-- <select ng-options="option.name as option.name for option in options"
+    ng-model="item" ng-change="update(item)"> -->

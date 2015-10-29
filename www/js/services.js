@@ -3,11 +3,49 @@ angular.module('zjubme.services', ['ionic','ngResource'])
 // 客户端配置
 .constant('CONFIG', {
   baseUrl: 'http://10.12.43.72:9000/Api/v1/',
+  wsServerIP : "ws://" + "10.12.43.61" + ":4141",
   role: "Patient",
   //revUserId: "",
   //TerminalName: "",
   //TerminalIP: "",
-  DeviceType: '1'
+  DeviceType: '1',
+  ImageAddressIP: "http://121.43.107.106:8088",
+  ImageAddressFile : "/PersonalPhoto",
+  // ImageAddress = ImageAddressIP + ImageAddressFile + "/" + DoctorId + ".jpg";
+  consReceiptUploadPath: 'cons/receiptUpload',
+  userResUploadPath: 'user/resUpload',
+
+  cameraOptions: {  // 用new的方式创建对象? 可以避免引用同一个内存地址, 可以修改新的对象而不会影响这里的值: 用angular.copy
+    quality: 75,
+    destinationType: 0,  // Camera.DestinationType = {DATA_URL: 0, FILE_URI: 1, NATIVE_URI: 2};
+    sourceType: 0,  // Camera.PictureSourceType = {PHOTOLIBRARY: 0, CAMERA: 1, SAVEDPHOTOALBUM: 2};
+    allowEdit: true,  // 会导致照片被正方形框crop, 变成正方形的照片
+    encodingType: 0,  // Camera.EncodingType = {JPEG: 0, PNG: 1};
+    targetWidth: 100,  // 单位是pix/px, 必须和下面的属性一起出现, 不会改变原图比例?
+    targetHeight: 100,
+    // mediaType: 0,  // 可选媒体类型: Camera.MediaType = {PICTURE: 0, VIDEO: 1, ALLMEDIA: 2};
+    // correctOrientation: true,
+    saveToPhotoAlbum: false,
+    popoverOptions: { 
+      x: 0,
+      y:  32,
+      width : 320,
+      height : 480,
+      arrowDir : 15  // Camera.PopoverArrowDirection = {ARROW_UP: 1, ARROW_DOWN: 2, ARROW_LEFT: 4, ARROW_RIGHT: 8, ARROW_ANY: 15};
+    },
+    cameraDirection: 0  // 默认为前/后摄像头: Camera.Direction = {BACK : 0, FRONT : 1};
+  },
+
+  uploadOptions: {
+    // fileKey: '',  // The name of the form element. Defaults to file. (DOMString)
+    // fileName: '.jpg',  // 后缀名, 在具体controller中会加上文件名; 这里不能用fileName, 否则将CONFIG.uploadOptions赋值给任何变量(引用赋值)后, 如果对该变量的同名属性fileName的修改都会修改CONFIG.uploadOptions.fileName
+    fileExt: '.jpg',  // 后缀名, 在具体controller中会加上文件名
+    httpMethod: 'POST',  // 'PUT'
+    mimeType: 'image/jpg',  // 'image/png'
+    //params: {_id: $stateParams.consId},
+    // chunkedMode: true,
+    //headers: {Authorization: 'Bearer ' + Storage.get('token')}
+  }
   })
 
 // 本地存储函数
@@ -43,7 +81,8 @@ angular.module('zjubme.services', ['ionic','ngResource'])
         ChangePassword:{method:'POST',params:{route:'ChangePassword'},timeout: 10000},
         Verification:{method:'POST',params:{route:'Verification'},timeout:10000},
         UID:{method:'GET',params:{route:'UID',Type:'@Type',Name:'@Name'},timeout:10000},
-        Activition:{method:'POST',params:{route:'Activition'},timeout:10000}
+        Activition:{method:'POST',params:{route:'Activition'},timeout:10000},
+        GetHealthCoachListByPatient: {method:'Get', isArray: true, params:{route: 'GetHealthCoachListByPatient'},timeout: 10000},
       });
     };
     var Service = function(){
@@ -60,16 +99,17 @@ angular.module('zjubme.services', ['ionic','ngResource'])
             GetLatestPatientVitalSigns: {method:'GET', params:{route: 'VitalSign'}, timeout: 10000},
             GetSignsDetailByPeriod: {method:'GET', params:{route: 'VitalSign'}, timeout: 10000},
             PostPatientVitalSigns:{method:'POST',params:{route: 'VitalSign'},timeout: 10000},
-
             // 获取某日期之前，一定条数血压（收缩压/舒张压）和脉率的数据详细时刻列表,用于phone，支持继续加载
             VitalSigns:{method:'GET',params:{route: 'VitalSigns'},timeout: 10000}
       });
     };
+
     var MessageInfo = function () {
         return $resource(CONFIG.baseUrl + ':path/:route', {path:'MessageInfo'},
-          {
-              submitSMS: {method:'POST', params:{route: 'message'}, headers:{token:'aGFZMnEwVlFCcy8vcW85ODNQRlRjb0hkc3lnSUw1VWpaVFpLVWhUbnpxQT06MTU5NTcxOTE0MzI6UGF0aWVudDoyMDE1LTEwLTIyIDIxOjI1OjA0'},timeout: 10000},
-              GetSMSDialogue:{method:'GET', params:{route: 'messages'}, headers:{token:'aGFZMnEwVlFCcy8vcW85ODNQRlRjb0hkc3lnSUw1VWpaVFpLVWhUbnpxQT06MTU5NTcxOTE0MzI6UGF0aWVudDoyMDE1LTEwLTIyIDIxOjI1OjA0'},timeout: 10000}
+              {
+                submitSMS: {method:'POST', params:{route: 'message'},timeout: 10000},
+                GetSMSDialogue:{method:'GET', isArray:true, params:{route: 'messages'},timeout: 10000}
+        
         });
     };
 
@@ -82,6 +122,14 @@ angular.module('zjubme.services', ['ionic','ngResource'])
         });
     };
 
+    var TaskInfo = function () {
+    return $resource(CONFIG.baseUrl + ':path/:route', {path:'PlanInfo'},
+      {
+        GetTasklist: {method:'GET',isArray:true,params:{route: 'Tasks', $filter:"InvalidFlag eq '1'"}, timeout: 10000},
+        Done:{method:'POST',params:{route: 'ComplianceDetail'}, timeout: 10000}
+       });
+    };
+
     serve.abort = function ($scope) {
     abort.resolve();
     $interval(function () {
@@ -90,19 +138,22 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       serve.Service = Service();
       serve.VitalInfo = VitalInfo(); 
       serve.MessageInfo = MessageInfo(); 
+      serve.TaskInfo = TaskInfo();
       }, 0, 1);
     };
     serve.Users = Users();
     serve.Service = Service();
     serve.VitalInfo = VitalInfo(); 
     serve.MessageInfo = MessageInfo();
+    serve.TaskInfo = TaskInfo();
     
     return serve;
 }])
 
+
 // 用户操作函数
 // --------登录注册-熊佳臻----------------
-.factory('userservice',['$http','$q' , 'Storage','Data', function($http,$q,Storage,Data){ 
+.factory('userservice',['$http','$q', 'Storage','Data', function($http,$q,Storage,Data){ 
   var serve = {};
     var status = "";
     //新的方法BEGIN
@@ -247,6 +298,65 @@ angular.module('zjubme.services', ['ionic','ngResource'])
   return serve;
 }])
 
+
+.factory('Users', ['$q', '$http', 'Data',function ( $q,$http, Data) {
+  var self = this;
+
+  self.GetHealthCoachListByPatient = function (PatientId, CategoryCode) {
+      var deferred = $q.defer();
+      Data.Users.GetHealthCoachListByPatient({PatientId:PatientId, CategoryCode:CategoryCode}, function (data, headers) {
+        deferred.resolve(data);
+      }, function (err) {
+      deferred.reject(err);
+      });
+      return deferred.promise;
+  };
+
+  self.myTrial = function (DoctorInfo) {
+    var deferred = $q.defer();
+    Data.Users.myTrialPost(DoctorInfo, function (data, headers) {
+      deferred.resolve(data);
+    }, function (err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  };
+
+  self.myTrial2 = function (userid) {
+    // Storage.set(13131313,userid);
+    //由于API中要求有userID变量 DATA 中只能写死 所以动态生成一个方法
+    var temp = $resource(CONFIG.baseUrl + ':path/:uid/:route', {
+      path:'Users',  
+    }, {
+      myTrialGET: {method:'GET', params:{uid: userid,route:'DoctorInfo'}, timeout: 10000}
+    });
+
+
+    var deferred = $q.defer();
+    temp.myTrialGET({}, function (data, headers) {
+      console.log("获得了数据"+data)
+      deferred.resolve(data);
+    }, function (err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  };
+
+  self.getquestionnaire = function(UserId,CategoryCode) {
+    var deferred = $q.defer();
+    Data.ModuleInfo.getModuleInfo({UserId: _UserId, CategoryCode: _CategoryCode},
+          function(data,status){
+            deferred.resolve(data);
+          },
+          function(err){
+            deferred.reject(err);
+          });
+        return deferred.promise;
+  };
+
+   return self;
+}])
+
 // --------交流-苟玲----------------
 .factory('MessageInfo', ['$q', '$http', 'Data',function ( $q,$http, Data) {
     var self = this;
@@ -254,9 +364,9 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       var deferred = $q.defer();
       Data.MessageInfo.submitSMS({SendBy:SendBy,Content:Content,Receiver:Receiver,piUserId:piUserId,piTerminalName:piTerminalName,piTerminalIP:piTerminalIP,piDeviceType:piDeviceType}, function (data, headers) {
         deferred.resolve(data);
-        }, function (err) {
-        deferred.reject(err);
-        });
+      }, function (err) {
+      deferred.reject(err);
+      });
       return deferred.promise;
     };
 
@@ -264,152 +374,14 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       var deferred = $q.defer();
       Data.MessageInfo.GetSMSDialogue({Reciever:Reciever,SendBy:SendBy}, function (data, headers) {
         deferred.resolve(data);
-        }, function (err) {
+      }, function (err) {
         deferred.reject(err);
-        });
+      });
       return deferred.promise;
     };
 
     return self;
 }])
-
-.factory('Socket', ['socketFactory', 'CONFIG', function (socketFactory, CONFIG) {
-  // return socketFactory({
-  //   // prefix: '',
-  //   // scope: '',  // 要用scope需要改造返回函数为: return function($scope) {return socketFactory({scope: $scope})}; 然后使用方法为: Socket($scope).emit()...
-  //   ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace)  // 文档里是用io.connect()方法; 必须连接全URL地址(可以加namespace), 而不能是相对路径, 因为在App中, 相对路径访问的是本地资源, 因此不会给服务器发送socket消息
-  //   // ioSocket: io(CONFIG.baseUrl + CONFIG.ioDefaultNamespace, {multiplex: false})  // 直接用io()也可以, 加multiplex选项强制每次使用新的socket Manager(不会改变服务器的socket.id!!!)
-  // });
-
-  // return {
-  //   default: socketFactory({
-  //     // prefix: '',
-  //     ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace)
-  //   }),
-  //   chat: socketFactory({
-  //     // prefix: '',
-  //     ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace + '/chat')
-  //   }),
-  //   consume: socketFactory({
-  //     // prefix: '',
-  //     ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace + '/consume')
-  //   })
-  // };
-  
-  var self = this;
-  var ioSocket = io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace);
-  self.default = socketFactory({
-    // prefix: '',
-    // ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace)
-    ioSocket: ioSocket
-  });
-  // self.chat = socketFactory({
-  //   // prefix: '',
-  //   ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace + '/chat')
-  // });
-  // self.consume = socketFactory({
-  //   // prefix: '',
-  //   ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace + '/consume')
-  // });
-  self.new = function () {
-    ioSocket = io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace);
-    console.log(CONFIG.baseUrl + CONFIG.ioDefaultNamespace);
-    self.default = socketFactory({
-      // prefix: '',
-      // ioSocket: io.connect(CONFIG.baseUrl + CONFIG.ioDefaultNamespace)
-      ioSocket: ioSocket
-    });
-  };
-  self.getSocket = function () {
-    return ioSocket;
-  };
-  return self;
-}])
-
-.factory('information', function() {
-  // Might use a resource here that returns a JSON array
-
-  // Some fake testing data
-  var information = [{
-    id: 0,
-    name: 'Ben Sparrow',
-    lastText: 'You on your way?',
-    face: 'img/1.jpg'
-  }, {
-    id: 1,
-    name: 'Max Lynx',
-    lastText: 'Hey, it\'s me',
-    face: 'img/2.jpg'
-  }, {
-    id: 2,
-    name: 'Adam Bradleyson',
-    lastText: 'I should buy a boat',
-    face: 'img/3.jpg'
-  }, {
-    id: 3,
-    name: 'Perry Governor',
-    lastText: 'Look at my mukluks!',
-    face: 'img/4.jpg'
-  }, {
-    id: 4,
-    name: 'Mike Harrington',
-    lastText: 'This is wicked good ice cream.',
-    face: 'img/5.jpg'
-     }, {
-    id: 5,
-    name: 'Max Lynx',
-    lastText: 'Hey, it\'s me',
-    face: 'img/6.jpg'
-  }, {
-    id: 6,
-    name: 'Adam Bradleyson',
-    lastText: 'I should buy a boat',
-    face: 'img/7.jpg'
-  }, {
-    id: 7,
-    name: 'Perry Governor',
-    lastText: 'Look at my mukluks!',
-    face: 'img/8.jpg'
-  }, {
-    id: 8,
-    name: 'Mike Harrington',
-    lastText: 'This is wicked good ice cream.',
-    face: 'img/9.jpg'
-     }, {
-    id: 9,
-    name: 'Max Lynx',
-    lastText: 'Hey, it\'s me',
-    face: 'img/10.jpg'
-  }, {
-    id: 10,
-    name: 'Adam Bradleyson',
-    lastText: 'I should buy a boat',
-    face: 'img/11.jpg'
-  }, {
-    id: 11,
-    name: 'Perry Governor',
-    lastText: 'Look at my mukluks!',
-    face: 'img/12.jpg'
-  
-  }];
-
-  return {
-    all: function() {
-      return information;
-    },
-    remove: function(chat) {
-      information.splice(information.indexOf(chat), 1);
-    },
-    get: function(chatId) {
-      for (var i = 0; i < information.length; i++) {
-        if (information[i].id === parseInt(chatId)) {
-          return information[i];
-        }
-      }
-      return null;
-    }
-  };
-})
 
 // --------任务、插件-马志彬----------------
 
@@ -465,35 +437,41 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       dt.minute.length==1?dt.minute='0'+dt.minute:dt.minute=dt.minute;
       dt.second=date.getSeconds().toString();
       dt.second.length==1?dt.second='0'+dt.second:dt.second=dt.second;
+      dt.fulldate=dt.year+dt.month+dt.day;
+      dt.fulltime=dt.hour+dt.minute+dt.second;
+      dt.full=dt.year+dt.month+dt.dat+dt.hour+dt.minute+dt.second;
+      // console.log(dt);
       return dt;
-    }
-  }
-})
-
-.factory('Projects', function(){
-  return {
-    all: function() {
-      var projectString = window.localStorage['projects'];
-      if(projectString) {
-        return angular.fromJson(projectString);
+    },
+    dictionary:function(d){
+      var dictionary={
+        "TD0001":"#/tab/task/healtheducation",
+        "TF0001":"#/tab/task/bpm",
+        "TF0002":"#/tab/task/bpm",
+        "TA0001":"#/tab/task/measureweight"
       }
-      return [];
+      var r='';
+      angular.forEach(dictionary,function(value,key){
+        if(key==d){r=value;}
+      })
+      return r;
     },
-    save: function(projects) {
-      window.localStorage['projects'] = angular.toJson(projects);
-    },
-    newProject: function(projectTitle) {
-      // Add a new project
-      return {
-        title: projectTitle,
-        tasks: []
-      };
-    },
-    getLastActiveIndex: function() {
-      return parseInt(window.localStorage['lastActiveProject']) || 0;
-    },
-    setLastActiveIndex: function(index) {
-      window.localStorage['lastActiveProject'] = index;
+    refreshflag:function(d,f){//d==操作；f==标志位
+      if(d=='set')
+      {
+        switch(f)
+        {
+          case "graphRefresh": window.localStorage.setItem("graphRefresh","1");break;
+          case "recordlistrefresh":window.localStorage.setItem("recordlistrefresh","1");break;
+        }
+      }else if(d=='get')
+      {
+        switch(f)
+        {
+          case "graphRefresh": return window.localStorage.getItem("graphRefresh");break;
+          case "recordlistrefresh":return window.localStorage.getItem("recordlistrefresh");break;
+        }
+      }
     }
   }
 })
@@ -633,19 +611,273 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     return deferred.promise;
   };
 
-  self.GetSignsDetailByPeriod = function (PatientId,Module,StartDate,Num) {
+  self.VitalSigns = function (PatientId,Module,StartDate,Num) {
     var deferred = $q.defer();
     Data.VitalInfo.VitalSigns({PatientId:PatientId,Module:Module,StartDate:StartDate,Num:Num}, function (data, headers) {
+      deferred.resolve(data);
+      }, function (err) {
+      deferred.reject(err);
+      });
+    return deferred.promise;
+  };
+  return self;
+}])
+
+.factory('TaskInfo', ['$q', 'Data','extraInfo', function($q, Data, extraInfo){
+  var self = this;
+  self.GetTasklist = function(data){
+    var deferred = $q.defer();
+    Data.TaskInfo.GetTasklist(data,function(s){
+      deferred.resolve(s);
+    },function(e){
+      deferred.reject(e);
+    });
+    return deferred.promise;
+  }
+
+  self.insertstate = function(arr)
+  {
+    for(var i=0;i<arr.length;i++)
+    {
+      arr[i].index=i;
+      arr[i].go=extraInfo.dictionary(arr[i].Code);
+    }
+    return arr;
+  }
+
+  self.done = function(arr,PLN)
+  {
+    var data={
+      "PlanNo":PLN,
+      "Date": extraInfo.DateTimeNow().fulldate,
+      "CategoryCode": arr.Instruction,
+      "Code": arr.Code,
+      "Status": arr.Status,
+      "Description": arr.Description
+    };
+    // console.log(data);
+    var deferred = $q.defer();
+      Data.TaskInfo.Done(data,function(s){
+        deferred.resolve(s);
+      },function(e){
+        deferred.reject(e);
+    });
+    return deferred.promise;
+  }
+  return self;
+}])
+
+.factory('NotificationService',['$cordovaLocalNotification',function($cordovaLocalNotification){
+  return{
+    save:function(arr){
+      var a=[];
+      a[0]=arr;
+      var t= angular.fromJson(window.localStorage['alertlist']);
+      if(t)
+      {
+        for(var i=0;i<t.length;i++)
+        {
+          a[i+1]=t[i];
+          a[i+1].index=i+1;
+        }
+      }
+      window.localStorage['alertlist'] = angular.toJson(a);
+      var n={
+        id: arr.ID,
+        title: arr.title,
+        text: arr.detail,
+        firstAt: arr.time,
+        every: "day",
+        sound: "file://sources/Nokia.mp3",
+        icon: "file://img/ionic.png"
+      };
+      $cordovaLocalNotification.schedule(n);
+    },
+    get:function(){
+      var alert = window.localStorage['alertlist'];
+      return angular.fromJson(alert);
+    },
+    remove:function(index){
+      var t= angular.fromJson(window.localStorage['alertlist']);
+      $cordovaLocalNotification.cancel(t[index].ID);
+      t.splice(index,1);
+      if(t)
+      {
+        for(var i=index;i<t.length;i++)
+        {
+          t[i].index--;
+        }
+      }
+      window.localStorage['alertlist'] = angular.toJson(t);
+    },
+    update:function(arr){
+      var t= angular.fromJson(window.localStorage['alertlist']);
+      t[arr.index]=arr;
+      window.localStorage['alertlist'] = angular.toJson(t);
+    }
+  }
+}])
+
+// --------李山----------------
+.factory('PlanInfo', ['$q', '$http', 'Data', function ( $q,$http, Data) {
+  var self = this;
+  self.GetImplementationForPhone = function (UserId,ItemType,ItemCode) {
+    var deferred = $q.defer();
+    Data.PlanInfo.GetImplementationForPhone({UserId:UserId,ItemType:ItemType,ItemCode:ItemCode}, function (data, headers) {
       deferred.resolve(data);
     }, function (err) {
       deferred.reject(err);
     });
     return deferred.promise;
   };
-
-  return self;
+  self.GetSignInfoByCode = function (PatientId,Module,StartDate,Num) {
+    var deferred = $q.defer();
+    Data.PlanInfo.GetSignInfoByCode({PatientId:PatientId,Module:Module,StartDate:StartDate,Num:Num}, function (data, headers) {
+      deferred.resolve(data);
+    }, function (err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  };
+  self.GetImplementationByDate = function (PatientId,Module,StartDate,Num) {
+    var deferred = $q.defer();
+    Data.PlanInfo.GetImplementationByDate({PatientId:PatientId,Module:Module,StartDate:StartDate,Num:Num}, function (data, headers) {
+      deferred.resolve(data);
+    }, function (err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  };
+    return self;
 }])
 
-// --------李山----------------
+.factory('Patients',['$q', '$http', 'Data','Storage','$resource','CONFIG',function ($q, $http, Data,Storage,$resource,CONFIG){ //LRZ
+  //get patients
+  //remove certain patients
+  //add  patients
+  //blablabla used by two controllers
+
+  return {
+    all: function() {
+      return patients_array;
+    },
+    remove: function(patient) {
+      patients_array.splice(patients_array.indexOf(chat), 1);
+    },
+    get: function(patientid) {
+      for (var i = 0; i < patients_array.length; i++) {
+        if (patients_array[i].id === parseInt(patientid)) {
+          return patients_array[i];
+        }
+      }
+      return null;
+    }
+  }
+}])
+
+// --------上传头像----------------
+.factory('Camera', ['$q','$cordovaCamera','CONFIG', '$cordovaFileTransfer',function($q,$cordovaCamera,CONFIG,$cordovaFileTransfer) { //LRZ
+  return {
+    getPicture: function() {
+
+      var options = { 
+          quality : 75, 
+          destinationType : 0, 
+          sourceType : 1, 
+          allowEdit : true,
+          encodingType: 0,
+          targetWidth: 300,
+          targetHeight: 300,
+          popoverOptions: CONFIG.popoverOptions,
+          saveToPhotoAlbum: false
+      };
+
+     var q = $q.defer();
+
+      $cordovaCamera.getPicture(options).then(function(imageData) {
+          imgURI = "data:image/jpeg;base64," + imageData;
+          // console.log("succeed" + imageData);
+          q.resolve(imgURI);
+      }, function(err) {
+          // console.log("sth wrong");
+          imgURI = undefined;
+          q.resolve(err);
+      });      
+      return q.promise; //return a promise
+    },
+
+    getPictureFromPhotos: function(){
+      var options = { 
+          quality : 75, 
+          destinationType : 0, 
+          sourceType : 0, 
+          allowEdit : true,
+          encodingType: 0,
+          targetWidth: 300,
+          targetHeight: 300
+      };
+        //从相册获得的照片不能被裁减 调研~
+     var q = $q.defer();
+      $cordovaCamera.getPicture(options).then(function(imageData) {
+          imgURI = "data:image/jpeg;base64," + imageData;
+          // console.log("succeed" + imageData);
+          q.resolve(imgURI);
+      }, function(err) {
+          // console.log("sth wrong");
+          imgURI = undefined;
+          q.resolve(err);
+      });      
+      return q.promise; //return a promise      
+    },
+
+    uploadPicture : function(imgURI){
+        // document.addEventListener('deviceready', onReadyFunction,false);
+        // function onReadyFunction(){
+          var uri = encodeURI(CONFIG.ImageAddressIP + "/upload.php");
+          var options = {
+            fileKey : "file",
+            fileName : "ZXF" + ".jpg",
+            chunkedMode : true,
+            mimeType : "image/jpeg"
+          };
+          var q = $q.defer();
+          console.log("jinlaile");
+          $cordovaFileTransfer.upload(uri,imgURI,options)
+            .then( function(r){
+              console.log("Code = " + r.responseCode);
+              console.log("Response = " + r.response);
+              console.log("Sent = " + r.bytesSent);
+              q.resolve(r);        
+            }, function(err){
+              alert("An error has occurred: Code = " + error.code);
+              console.log("upload error source " + error.source);
+              console.log("upload error target " + error.target);
+              q.resolve(error);          
+            }, function (progress) {
+              console.log(progress);
+            })
+
+            ;
+          return q.promise;  
+        // }
+
+
+        // var ft = new FileTransfer();
+        // $cordovaFileTransfer.upload(imgURI, uri, win, fail, options);
+      
+    },
+
+  uploadPicture2: function(imgURI){
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    function onDeviceReady() {
+   // as soon as this function is called FileTransfer "should" be defined
+      console.log(FileTransfer);
+      console.log(File);
+    }
+  }
+  }
+}])
+
 
 ;
