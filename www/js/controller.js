@@ -917,7 +917,6 @@ function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordov
 //目标-图表
 .controller('graphcontroller', ['$scope', '$http','$ionicSideMenuDelegate','$timeout','$state','$window','$ionicPopover', 'PlanInfo','$ionicLoading', 'Storage',
     function($scope, $http, $ionicSideMenuDelegate,$timeout, $state, $window, $ionicPopover, PlanInfo, $ionicLoading, Storage) {
-      Storage.set('recordListRefresh','1');
 
       //固定变量guide 也可读自json文件
        var SBPGuide='';
@@ -936,6 +935,7 @@ function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordov
       promise.then(function(data) {  
            if((data.PlanNo==null) ||(data.PlanNo==''))
            {
+              //console.log(data);
               $scope.showGraph=false;
               $scope.graphText="没有正在执行的计划";
            }
@@ -1673,8 +1673,11 @@ function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordov
        };
 }])
 
-.controller('personalInfocontroller',['$scope','$ionicHistory','$state','$ionicPopup','$resource','Storage','Data','CONFIG',
-   function($scope, $ionicHistory, $state, $ionicPopup, $resource, Storage, Data,CONFIG) {        
+
+//----------------侧边栏----------------
+//个人信息
+.controller('personalInfocontroller',['$scope','$ionicHistory','$state','$ionicPopup','$resource','Storage','Data','CONFIG','$ionicLoading',
+   function($scope, $ionicHistory, $state, $ionicPopup, $resource, Storage, Data,CONFIG, $ionicLoading) {        
         // console.log(111);
         // 图片地址
         $scope.url="http://www.runoob.com/try/demo_source/";//CONFIG.imgurl
@@ -1731,6 +1734,9 @@ function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordov
         var urltemp2 = UserId + '/BasicDtlInfo';
         // 读取数据库患者基本/详细信息  
         var init_personalInfo = function(){
+          $ionicLoading.show({
+            template: '<ion-spinner style="height:2em;width:2em"></ion-spinner>'
+           });
             Data.Users.GetPatBasicInfo({route:urltemp1}, 
                           function (success, headers) {
                             $scope.BasicInfo = success;
@@ -1743,13 +1749,14 @@ function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordov
                           function (success, headers) {
                             $scope.BasicDtlInfo = success;
                             // console.log($scope.BasicDtlInfo); 
+                            $ionicLoading.hide();
                           }, 
                           function (err) {
                             // 目前好像不存在userid不对的情况，都会返回一个结果
                           });       
         };  
         init_personalInfo();
-          
+        init_personalInfo();
         // 设置日期
         // 日历   
         // $scope.birthday="请填写您的出生日期";
@@ -1930,7 +1937,22 @@ function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordov
           });// 基本信息的修改结束
   
         };// 点击事件的定义结束
-    }])
+
+
+
+        //-----------------上传头像----------------
+
+}])
+
+//我的二维码
+.controller('myQrcodecontroller', function ($scope, $ionicHistory) {
+
+    $scope.nvGoback = function() {
+       $ionicHistory.goBack();
+      }
+
+    $scope.bar = "PID201506180012";
+})
 ;
 
 

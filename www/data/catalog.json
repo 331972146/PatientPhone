@@ -10,8 +10,8 @@
 		"url":"img/icon/clock.png"
 	},
 	{
-		"catalog":"账号绑定",
-		"catalogID":"accountbind",
+		"catalog":"我的二维码",
+		"catalogID":"myQrcode",
 		"url":"img/icon/accountbind.png"
 	},
 	{

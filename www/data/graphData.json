@@ -1,0 +1,22 @@
+[
+    {
+        "Date": "20151028", 
+        "Compliance": 0.25, 
+        "Description": "sample string 4", 
+        "Value": "收缩压：95<br>舒张压：95<br>", 
+        "Task": "体重管理：0   合理饮食：0   锻炼：0<br>健康教育：0<br>药物治疗：0<br>体征测量：0<br>其他：0<br>个性化定制：0<br>", 
+        "BulletValue": "1", 
+        "BulletColor": "#DADADA", 
+        "CustomBullet": "img/amcharts/customBullet.png"
+    }, 
+    {
+        "Date": "20151029", 
+        "Compliance": 0.19, 
+        "Description": "sample string 4", 
+        "Value": "收缩压：95<br>舒张压：95<br>", 
+        "Task": "体重管理：0   合理饮食：0   锻炼：0<br>健康教育：0<br>药物治疗：0<br>体征测量：0<br>其他：0<br>个性化定制：0<br>", 
+        "BulletValue": "1", 
+        "BulletColor": "#DADADA", 
+        "CustomBullet": "img/amcharts/customBullet.png"
+    }
+]
