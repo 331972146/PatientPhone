@@ -453,7 +453,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     },
     dictionary:function(d){
       var dictionary={
-        "TD0000":"openModal",
+        "TD0000":"openHeModal",
         "TF0001":"#/tab/task/bpm",
         "TF0002":"#/tab/task/bpm",
         "TA0001":"#/tab/task/measureweight"
@@ -649,11 +649,11 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       "Date": extraInfo.DateTimeNow().fulldate,
       "CategoryCode": arr.Type,
       "Code": arr.Code,
-      "Status": arr.Status,
+      "Status": "1",
       "Description": arr.Description,
       "SortNo":'1'
     };
-
+    console.log(arr.Status);
     var deferred = $q.defer();
       Data.TaskInfo.Done(data,function(s){
         deferred.resolve(s);

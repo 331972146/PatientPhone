@@ -324,8 +324,8 @@ angular.module('zjubme.controllers', ['ionic','ngResource','zjubme.services', 'z
 
 // --------任务列表-马志彬----------------
 //侧边提醒
-.controller('SlidePageCtrl', ['$scope', '$ionicHistory', '$timeout', '$ionicModal', '$ionicSideMenuDelegate', '$http','NotificationService',
-   function($scope, $ionicHistory, $timeout, $ionicModal, $ionicSideMenuDelegate, $http,NotificationService) {
+.controller('SlidePageCtrl', ['$scope', '$ionicHistory', '$timeout', '$ionicModal', '$ionicSideMenuDelegate', '$http','NotificationService','$ionicListDelegate',
+   function($scope, $ionicHistory, $timeout, $ionicModal, $ionicSideMenuDelegate, $http,NotificationService,$ionicListDelegate) {
       $scope.text = 'Hello World!';
       ////获取任务列表数据
       // $http.get('testdata/tasklist.json').success(function(data){
@@ -351,6 +351,7 @@ angular.module('zjubme.controllers', ['ionic','ngResource','zjubme.services', 'z
       });
       $scope.openModal = function(i) {
         console.log(i);
+        $ionicListDelegate.closeOptionButtons();
         $scope.modal.show(); 
         $scope.alertcontent=
         {
@@ -427,8 +428,8 @@ angular.module('zjubme.controllers', ['ionic','ngResource','zjubme.services', 'z
 }])
 
 //任务详细
-.controller('taskdetailcontroller',['$scope','$ionicModal','$stateParams','$state','extraInfo', '$cordovaInAppBrowser', 'TaskInfo','extraInfo',
-function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,TaskInfo,extraInfo) {
+.controller('taskdetailcontroller',['$scope','$ionicModal','$stateParams','$state','extraInfo', '$cordovaInAppBrowser', 'TaskInfo','extraInfo','$ionicListDelegate',
+function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,TaskInfo,extraInfo,$ionicListDelegate) {
   var data={"ParentCode":$stateParams.tl,"PlanNo":"PLAN20151029","Date":"NOW","PatientId":'PID201506180013'};
   var detail={"ParentCode":'',"PlanNo":"PLAN20151029","Date":"NOW","PatientId":'PID201506180013'};
   ////////////////////////////////////
@@ -438,7 +439,7 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
   }).then(function(modal) {
     $scope.modal = modal;
   });
-  $scope.openModal = function(code) {
+  $scope.openHeModal = function(code) {//healtheducation modal
     detail.ParentCode=code;
     // console.log(code);
     TaskInfo.GetTasklist(detail).then(function(s){
@@ -449,7 +450,7 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
     });
     $scope.modal.show();
   };
-  $scope.closeModal = function() {
+  $scope.closeHeModal = function() {
     $scope.modal.hide();
   };
   $scope.openUrl = function(url)
@@ -498,17 +499,18 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
   $scope.done = function(index)
   {
     console.log(index);
-    $scope.taskdetaillist[index].Status='1';
+    $ionicListDelegate.closeOptionButtons();
     console.log( $scope.taskdetaillist[index]);
     TaskInfo.done($scope.taskdetaillist[index],data.PlanNo).then(function(s){
       console.log(s);
+      $scope.taskdetaillist[index].Status='1';
     })
   }
 }])
 
 //任务列表
 .controller('tasklistcontroller',['$scope','$ionicModal','$timeout','$http', 'TaskInfo','extraInfo',function($scope,$ionicModal,$timeout,$http,TaskInfo,extraInfo) {
-  var data={"ParentCode":"T","PlanNo":"C001","Date":"NOW","PatientId":'CP001'};
+  var data={"ParentCode":"T","PlanNo":"PLAN20151029","Date":"NOW","PatientId":'PID201506180013'};
   ionic.DomUtil.ready(function(){
     get();
   });
@@ -887,12 +889,59 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
   };
 }])
 
-.controller('measureweightcontroller',['$scope', function($scope){
+.controller('measureweightcontroller',['$scope','Data','Storage', function($scope,Data,Storage){
   $scope.BMI={}
+  var UserId ='PID201506180013'// Storage.get("UID");
+  var urltemp1 = UserId + '/BasicDtlInfo';
+  var BasicDtlInfo;
+  Data.Users.GetPatientDetailInfo({route:urltemp1}, 
+    function (success, headers) {
+      console.log(success);
+      BasicDtlInfo=success;
+      $scope.BMI.weight = parseInt(success.Weight);
+      $scope.BMI.height = parseInt(success.Height);
+    }, 
+    function (err) {
+      console.log(err); 
+      // 目前好像不存在userid不对的情况，都会返回一个结果
+    }
+  );
   $scope.test = function()
   {
-    $scope.BMI.BMI=($scope.BMI.weight/($scope.BMI.height*$scope.BMI.height));
+    $scope.BMI.BMI=($scope.BMI.weight/($scope.BMI.height * $scope.BMI.height));
     console.log($scope.BMI.BMI);
+  };
+  $scope.saveWH = function()
+  {
+    console.log(BasicDtlInfo);
+    Data.Users.PostPatBasicInfoDetail(
+      [{ Patient: UserId,
+        CategoryCode: "BodySigns",
+        ItemCode: "Height",
+        ItemSeq: "1",
+        Value: $scope.BMI.height,
+        Description: "",
+        SortNo:"1",
+        revUserId: UserId,
+        TerminalName: "sample string 9",
+        TerminalIP: "sample string 10",
+        DeviceType: "11"
+      },
+      { Patient: UserId,
+        CategoryCode: "BodySigns",
+        ItemCode: "Weight",
+        ItemSeq: "1",
+        Value: $scope.BMI.weight,
+        Description: "",
+        SortNo:"1",
+        revUserId: UserId,
+        TerminalName: "sample string 9",
+        TerminalIP: "sample string 10",
+        DeviceType: "11"
+      }],function(s){
+        console.log(s);
+        alert("保存成功！");
+    });
   }
 }])
 
