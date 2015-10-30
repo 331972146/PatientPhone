@@ -70,20 +70,6 @@
         "fillColor": ""
     },
     {
-        "value": "80",
-        "toValue": "#CC0000",
-        "label": "80",
-        "lineColor": "#CC0000",
-        "lineAlpha": "0.15",
-        "dashLength": "",
-        "color": "#CC0000",
-        "fontSize": "8",
-        "position": "left",
-        "inside": "",
-        "fillAlpha": "",
-        "fillColor": ""
-    },
-    {
         "value": "100",
         "toValue": "#CC0000",
         "label": "100",

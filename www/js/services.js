@@ -83,6 +83,10 @@ angular.module('zjubme.services', ['ionic','ngResource'])
         UID:{method:'GET',params:{route:'UID',Type:'@Type',Name:'@Name'},timeout:10000},
         Activition:{method:'POST',params:{route:'Activition'},timeout:10000},
         GetHealthCoachListByPatient: {method:'Get', isArray: true, params:{route: 'GetHealthCoachListByPatient'},timeout: 10000},
+        GetPatBasicInfo: {method:'GET', params:{route:'@UserId'}, timeout:10000},
+        GetPatientDetailInfo: {method:'GET', params:{route:'@UserId'}, timeout:10000},
+        SetPatBasicInfo: {method:'POST', params:{route:'BasicInfo'}, timeout:10000},
+        PostPatBasicInfoDetail: {method:'POST', params:{route:'BasicDtlInfo'}, timeout:10000}
       });
     };
     var Service = function(){
@@ -118,7 +122,8 @@ angular.module('zjubme.services', ['ionic','ngResource'])
           {
               GetImplementationForPhone: {method:'GET', params:{route: 'GetImplementationForPhone'},timeout: 10000},
               GetSignInfoByCode: {method:'GET', params:{route: 'GetSignInfoByCode'},timeout: 10000},
-              GetImplementationByDate: {method:'GET', params:{route: 'GetImplementationByDate'},timeout: 10000}               
+              GetImplementationByDate: {method:'GET', params:{route: 'GetImplementationByDate'},timeout: 10000},
+              ExecutingPlanByModule: {method:'GET', params:{route: 'ExecutingPlanByModule'},timeout: 10000}               
         });
     };
 
@@ -139,6 +144,8 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       serve.VitalInfo = VitalInfo(); 
       serve.MessageInfo = MessageInfo(); 
       serve.TaskInfo = TaskInfo();
+      serve.PlanInfo = PlanInfo();
+      
       }, 0, 1);
     };
     serve.Users = Users();
@@ -146,6 +153,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     serve.VitalInfo = VitalInfo(); 
     serve.MessageInfo = MessageInfo();
     serve.TaskInfo = TaskInfo();
+    serve.PlanInfo = PlanInfo();
     
     return serve;
 }])
@@ -385,7 +393,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
 
 // --------任务、插件-马志彬----------------
 
-.factory('extraInfo',function(){
+.factory('extraInfo',function(CONFIG){
   return{
     PatientId:function(data){
       if(data==null)
@@ -445,7 +453,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     },
     dictionary:function(d){
       var dictionary={
-        "TD0001":"#/tab/task/healtheducation",
+        "TD0000":"openModal",
         "TF0001":"#/tab/task/bpm",
         "TF0002":"#/tab/task/bpm",
         "TA0001":"#/tab/task/measureweight"
@@ -456,22 +464,8 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       })
       return r;
     },
-    refreshflag:function(d,f){//d==操作；f==标志位
-      if(d=='set')
-      {
-        switch(f)
-        {
-          case "graphRefresh": window.localStorage.setItem("graphRefresh","1");break;
-          case "recordlistrefresh":window.localStorage.setItem("recordlistrefresh","1");break;
-        }
-      }else if(d=='get')
-      {
-        switch(f)
-        {
-          case "graphRefresh": return window.localStorage.getItem("graphRefresh");break;
-          case "recordlistrefresh":return window.localStorage.getItem("recordlistrefresh");break;
-        }
-      }
+    TransformUrl:function(url){
+      return ("http://121.43.107.106:8090" + url);//http://121.43.107.106:8090/HealthEducation/M1_2015-05-18%2022_56_35.html
     }
   }
 })
@@ -623,7 +617,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
   return self;
 }])
 
-.factory('TaskInfo', ['$q', 'Data','extraInfo', function($q, Data, extraInfo){
+.factory('TaskInfo', ['$q', 'Data','extraInfo',function($q,Data,extraInfo){
   var self = this;
   self.GetTasklist = function(data){
     var deferred = $q.defer();
@@ -634,28 +628,32 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     });
     return deferred.promise;
   }
-
   self.insertstate = function(arr)
   {
     for(var i=0;i<arr.length;i++)
     {
       arr[i].index=i;
-      arr[i].go=extraInfo.dictionary(arr[i].Code);
+      switch(arr[i].ParentCode)
+      {
+        case "TD0000":arr[i].click=extraInfo.dictionary("TD0000");break;
+        default :arr[i].go=extraInfo.dictionary(arr[i].Code);break;
+      }
+      // console.log(arr[i].ParentCode);
     }
     return arr;
   }
-
   self.done = function(arr,PLN)
   {
     var data={
       "PlanNo":PLN,
       "Date": extraInfo.DateTimeNow().fulldate,
-      "CategoryCode": arr.Instruction,
+      "CategoryCode": arr.Type,
       "Code": arr.Code,
       "Status": arr.Status,
-      "Description": arr.Description
+      "Description": arr.Description,
+      "SortNo":'1'
     };
-    // console.log(data);
+
     var deferred = $q.defer();
       Data.TaskInfo.Done(data,function(s){
         deferred.resolve(s);
@@ -742,6 +740,15 @@ angular.module('zjubme.services', ['ionic','ngResource'])
   self.GetImplementationByDate = function (PatientId,Module,StartDate,Num) {
     var deferred = $q.defer();
     Data.PlanInfo.GetImplementationByDate({PatientId:PatientId,Module:Module,StartDate:StartDate,Num:Num}, function (data, headers) {
+      deferred.resolve(data);
+    }, function (err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  };
+  self.ExecutingPlanByModule = function (PatientId,Module) {
+    var deferred = $q.defer();
+    Data.PlanInfo.ExecutingPlanByModule({PatientId:PatientId,Module:Module}, function (data, headers) {
       deferred.resolve(data);
     }, function (err) {
       deferred.reject(err);

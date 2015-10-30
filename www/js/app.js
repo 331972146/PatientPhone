@@ -191,34 +191,7 @@ angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubm
           }
         }
     });
-  
-  //左侧菜单
- // $stateProvider
- //    .state('sideMenu',{
- //      abstract:true,
- //      url:"/sideMenu",
- //      template:'<ion-nav-view/>'
- //    })
- //    .state('sideMenu.changePassword', {
- //        url: '/changePassword',
- //        views: {
- //          '': {
- //            templateUrl: 'partials/sideMenu/changePassword.html',
- //            controller: 'changePasswordCtrl'
- //          }
- //        }
- //    })
- //    .state('sideMenu.personalInfo', {
- //        url: '/personalInfo',
- //        views: {
- //          '': {
- //            templateUrl: 'partials/sideMenu/personalInfo.html',
- //            controller: 'PersonalInfo'
- //          }
- //        }
- //    })
- //    ;  
-  
+
 //目录
  $stateProvider
     .state('catalog',{

@@ -2,12 +2,12 @@
   "RemainingDays":"10",
   "CompliacneValue":"86%",
    "GraphList":[
-     { "Date":"20150911","SBPValue":"#","DBPValue":"#", "PulseValue":"#","BloodGlucose":"#",
-       "BulletValue":"1","BulletColor":"#DADADA","CustomBullet":"",  
+     { "Date":"20150911","Bloodpressure_1":"#","DBPValue":"#", "PulseValue":"#","BloodGlucose":"#",
+       "BulletValue":"1","BulletColor":"#DADADA","CustomBullet":"","value":{"Bloodpressure_1":"80"} ,
        "BulletDescription":"体征测量：0/4<br>合理饮食：0/3<br>"},
-     { "Date":"20150912","SBPValue":"139","DBPValue":"80", "PulseValue":"62","BloodGlucose":"6.8",  
+     { "Date":"20150912","DBPValue":"80", "PulseValue":"62","BloodGlucose":"6.8",  
        "BulletValue":"1","BulletColor":"#DADADA","CustomBullet":"img/amcharts/customBullet.png","BulletDescription":"体征测量：4/4<br>合理饮食：3/3<br>"},
-       {"Date":"20150913","SBPValue":"149","DBPValue":"70", "PulseValue":"62","BloodGlucose":"10.8",  "BulletValue":"1","BulletColor":"#77777","CustomBullet":"","BulletDescription":"体征测量：4/4<br>合理饮食：0/3<br>"}
+       {"Date":"20150913","Bloodpressure_1":"149","DBPValue":"70", "PulseValue":"62","BloodGlucose":"10.8",  "BulletValue":"1","BulletColor":"#77777","CustomBullet":"","BulletDescription":"体征测量：4/4<br>合理饮食：0/3<br>"}
       ]
    }
 

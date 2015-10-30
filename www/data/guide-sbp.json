@@ -68,7 +68,7 @@
         "position": "right",
         "inside": "true",
         "fillAlpha": "0.1",
-        "fillColor": "#FFA042"
+        "fillColor": "#009100"
     },
     {
         "value": "160",
@@ -96,7 +96,7 @@
         "position": "right",
         "inside": "true",
         "fillAlpha": "0.1",
-        "fillColor": "#FF0000"
+        "fillColor": "#EA0000"
     },
     {
         "value": "90",

@@ -15,6 +15,7 @@
       <a class="button" href="#/tab/recordList">体征表</a>
     </div>
 
+<div ng-if="showGraph==true">
     <div class="row">
       <div class="col" style="text-align:center;">
          <p><i class="icon ion-arrow-swap"></i>体征选择</p>
@@ -33,7 +34,13 @@
     <div style="text-align:center;margin-top:20px;">    
       <p style="color:#2894FF;font-size:16px;">计划进度20%，离结束还有20天</p>
     </div>
-    
+</div>   
+
+<div ng-if="showGraph==false">
+   <div style="text-align:center;margin-top:50px;">    
+      <p style="color:#2894FF;font-size:16px;">{{graphText}}</p>
+    </div>
+</div>  
   </ion-content>
 </ion-view>
 
