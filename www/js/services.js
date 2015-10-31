@@ -123,7 +123,8 @@ angular.module('zjubme.services', ['ionic','ngResource'])
               GetImplementationForPhone: {method:'GET', params:{route: 'GetImplementationForPhone'},timeout: 10000},
               GetSignInfoByCode: {method:'GET', params:{route: 'GetSignInfoByCode'},timeout: 10000},
               GetImplementationByDate: {method:'GET', params:{route: 'GetImplementationByDate'},timeout: 10000},
-              ExecutingPlanByModule: {method:'GET', params:{route: 'ExecutingPlanByModule'},timeout: 10000}               
+              ExecutingPlanByModule: {method:'GET', params:{route: 'ExecutingPlanByModule'},timeout: 10000},
+              GetExecutingPlan: {method:'GET', isArray:true ,params:{route: 'Plan'},timeout: 10000}
         });
     };
 
@@ -398,37 +399,44 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     PatientId:function(data){
       if(data==null)
       {
-        return window.localStorage.getItem("PatientId");
+        return angular.fromJson(window.localStorage['PatientId']);
       }else {
-        window.localStorage.setItem("PatientId",data);
+        window.localStorage['PatientId'] = angular.toJson(data);
+      }},
+    PlanNo:function(data){
+      if(data==null)
+      {
+        return angular.fromJson(window.localStorage['PlanNo']);
+      }else {
+        window.localStorage['PlanNo'] = angular.toJson(data);
       }},
     TerminalIP:function(data){
       if(data==null)
       {
-        return window.localStorage.getItem("TerminalIP");
+        return angular.fromJson(window.localStorage['TerminalIP']);
       }else {
-        window.localStorage.setItem("TerminalIP",data);
+        window.localStorage['TerminalIP'] = angular.toJson(data);
       }},
     TerminalName:function(data){
       if(data==null)
       {
-        return window.localStorage.getItem("TerminalName");
+        return angular.fromJson(window.localStorage['TerminalName']);
       }else {
-        window.localStorage.setItem("TerminalName",data);
+        window.localStorage['TerminalName'] = angular.toJson(data);
       }},
     DeviceType:function(data){
       if(data==null)
       {
-        return window.localStorage.getItem("DeviceType");
+        return angular.fromJson(window.localStorage['DeviceType']);
       }else {
-        window.localStorage.setItem("DeviceType",data);
+        window.localStorage['DeviceType'] = angular.toJson(data);
       }},
     revUserId:function(data){
       if(data==null)
       {
-        return window.localStorage.getItem("ID");
+        return angular.fromJson(window.localStorage['ID']);
       }else {
-        window.localStorage.setItem("ID",data);
+        window.localStorage['ID'] = angular.toJson(data);
       }},
     DateTimeNow:function(){
       var date = new Date();
@@ -456,6 +464,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
         "TD0000":"openHeModal",
         "TF0001":"#/tab/task/bpm",
         "TF0002":"#/tab/task/bpm",
+        "TF0003":"#/tab/task/bloodglucose",
         "TA0001":"#/tab/task/measureweight"
       }
       var r='';
@@ -466,6 +475,23 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     },
     TransformUrl:function(url){
       return ("http://121.43.107.106:8090" + url);//http://121.43.107.106:8090/HealthEducation/M1_2015-05-18%2022_56_35.html
+    },
+    TransformBloodglucoseCode:function(n){
+      var dictionary={
+        "凌晨":"BloodSugar_2",
+        "睡前":"BloodSugar_3",
+        "早餐前":"BloodSugar_4",
+        "早餐后":"BloodSugar_5",
+        "午餐前":"BloodSugar_6",
+        "午餐后":"BloodSugar_7",
+        "晚餐前":"BloodSugar_8",
+        "晚餐后":"BloodSugar_9"
+      }
+      var r = '';
+      angular.forEach(dictionary,function(value,key){
+        if(key==n)r=value;
+      })
+      return r;
     }
   }
 })
@@ -614,6 +640,15 @@ angular.module('zjubme.services', ['ionic','ngResource'])
       });
     return deferred.promise;
   };
+  self.GetLatestPatientVitalSigns = function (data) {
+    var deferred = $q.defer();
+    Data.VitalInfo.GetLatestPatientVitalSigns(data, function (data, headers) {
+      deferred.resolve(data);
+      }, function (err) {
+      deferred.reject(err);
+      });
+    return deferred.promise;
+  };
   return self;
 }])
 
@@ -746,7 +781,7 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     });
     return deferred.promise;
   };
-  self.ExecutingPlanByModule = function (PatientId,Module) {
+  self.ExecutingPlanByModule = function (PatientId,Module) {//这个东西是不是要删掉了。方法已经改了
     var deferred = $q.defer();
     Data.PlanInfo.ExecutingPlanByModule({PatientId:PatientId,Module:Module}, function (data, headers) {
       deferred.resolve(data);
@@ -755,6 +790,16 @@ angular.module('zjubme.services', ['ionic','ngResource'])
     });
     return deferred.promise;
   };
+  self.GetExecutingPlan = function(data)
+  {
+    var deferred = $q.defer();
+    Data.PlanInfo.GetExecutingPlan(data,function(s){
+      deferred.resolve(s);
+    },function(e){
+      deferred.reject(e);
+    })
+    return deferred.promise;
+  }
     return self;
 }])
 

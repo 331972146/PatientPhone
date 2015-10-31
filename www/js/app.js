@@ -86,8 +86,9 @@ angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubm
           switch($stateParams.tl)
           {
             //case 'tasklist':return "partials/tabs/index.task.tasklist.html";break;
-            case 'healtheducation':return "partials/tabs/index.task.healtheducation.html";break;
+            // case 'healtheducation':return "partials/tabs/index.task.healtheducation.html";break;
             case 'bpm':return "partials/tabs/index.task.bpm.html";break;
+            case 'bloodglucose':return "partials/tabs/index.task.bloodglucose.html";break;
             case 'measureweight':return "partials/tabs/index.task.measureweight.html";break;
             default:return "partials/tabs/index.task.taskdetail.html";break;
           }
@@ -97,8 +98,9 @@ angular.module('zjubme', ['ionic','zjubme.services', 'zjubme.directives', 'zjubm
           switch($stateParams.tl)
           {
             case 'tasklist':return 'tasklistcontroller';break;
-            case 'healtheducation':return "healtheducationcontroller";break;
+            // case 'healtheducation':return "healtheducationcontroller";break;
             case 'bpm':return "bpmcontroller";break;
+            case 'bloodglucose':return "bloodglucosecontroller";break;
             case 'measureweight':return "measureweightcontroller";break;
             default:return 'taskdetailcontroller';break;
           }
