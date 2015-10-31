@@ -324,9 +324,21 @@ angular.module('zjubme.controllers', ['ionic','ngResource','zjubme.services', 'z
 
 // --------任务列表-马志彬----------------
 //侧边提醒
-.controller('SlidePageCtrl', ['$scope', '$ionicHistory', '$timeout', '$ionicModal', '$ionicSideMenuDelegate', '$http','NotificationService','$ionicListDelegate',
-   function($scope, $ionicHistory, $timeout, $ionicModal, $ionicSideMenuDelegate, $http,NotificationService,$ionicListDelegate) {
+.controller('SlidePageCtrl', ['$scope', '$ionicHistory', '$timeout', '$ionicModal', '$ionicSideMenuDelegate', '$http','NotificationService','$ionicListDelegate','PlanInfo','extraInfo',
+   function($scope, $ionicHistory, $timeout, $ionicModal, $ionicSideMenuDelegate, $http,NotificationService,$ionicListDelegate,PlanInfo,extraInfo) {
       $scope.text = 'Hello World!';
+      var get = {
+        PatientId:'PID201506180013',
+        PlanNo:'NULL',
+        Module:'M1',
+        Status:'3'
+      }
+      PlanInfo.GetExecutingPlan(get).then(function(s){
+        console.log(s[0]);
+        extraInfo.PlanNo(s[0])
+      },function(e){
+        console.log(e);
+      })
       ////获取任务列表数据
       // $http.get('testdata/tasklist.json').success(function(data){
       //  $scope.tasklist = data;
@@ -428,10 +440,10 @@ angular.module('zjubme.controllers', ['ionic','ngResource','zjubme.services', 'z
 }])
 
 //任务详细
-.controller('taskdetailcontroller',['$scope','$ionicModal','$stateParams','$state','extraInfo', '$cordovaInAppBrowser', 'TaskInfo','extraInfo','$ionicListDelegate',
-function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,TaskInfo,extraInfo,$ionicListDelegate) {
-  var data={"ParentCode":$stateParams.tl,"PlanNo":"PLAN20151029","Date":"NOW","PatientId":'PID201506180013'};
-  var detail={"ParentCode":'',"PlanNo":"PLAN20151029","Date":"NOW","PatientId":'PID201506180013'};
+.controller('taskdetailcontroller',['$scope','$ionicModal','$stateParams','$state','extraInfo', '$cordovaInAppBrowser', 'TaskInfo','$ionicListDelegate',
+function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,TaskInfo,$ionicListDelegate) {
+  var data={"ParentCode":$stateParams.tl,"PlanNo":"PLAN20151029","Date":"NOW","PatientId":extraInfo.PlanNo()};
+  var detail={"ParentCode":'',"PlanNo":"PLAN20151029","Date":"NOW","PatientId":extraInfo.PlanNo()};
   ////////////////////////////////////
   $ionicModal.fromTemplateUrl('helist.html', {
     scope: $scope,
@@ -510,7 +522,7 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
 
 //任务列表
 .controller('tasklistcontroller',['$scope','$ionicModal','$timeout','$http', 'TaskInfo','extraInfo',function($scope,$ionicModal,$timeout,$http,TaskInfo,extraInfo) {
-  var data={"ParentCode":"T","PlanNo":"PLAN20151029","Date":"NOW","PatientId":'PID201506180013'};
+  var data={"ParentCode":"T","PlanNo":"PLAN20151029","Date":"NOW","PatientId":extraInfo.PlanNo()};
   ionic.DomUtil.ready(function(){
     get();
   });
@@ -889,23 +901,40 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
   };
 }])
 
-.controller('measureweightcontroller',['$scope','Data','Storage', function($scope,Data,Storage){
+.controller('measureweightcontroller',['$scope','Data','Storage','VitalInfo', 'extraInfo',
+  function($scope,Data,Storage,VitalInfo,extraInfo){
+  $scope.$on('$viewContentLoading', 
+  function(event){
+    console.log('viewContentLoading');
+    VitalInfo.GetLatestPatientVitalSigns(get[0]).then(function(s){
+      console.log(s);
+      $scope.BMI.weight = parseInt(s.result);
+      VitalInfo.GetLatestPatientVitalSigns(get[1]).then(function(s){
+        $scope.BMI.height = parseInt(s.result);
+        console.log(s);
+      });
+    });
+  });
   $scope.BMI={}
   var UserId ='PID201506180013'// Storage.get("UID");
-  var urltemp1 = UserId + '/BasicDtlInfo';
-  var BasicDtlInfo;
-  Data.Users.GetPatientDetailInfo({route:urltemp1}, 
-    function (success, headers) {
-      console.log(success);
-      BasicDtlInfo=success;
-      $scope.BMI.weight = parseInt(success.Weight);
-      $scope.BMI.height = parseInt(success.Height);
-    }, 
-    function (err) {
-      console.log(err); 
-      // 目前好像不存在userid不对的情况，都会返回一个结果
-    }
-  );
+  var get = [{
+    UserId:UserId,
+    ItemType:"Weight",
+    ItemCode:"Weight_1"
+  },
+  {
+    UserId:UserId,
+    ItemType:"Height",
+    ItemCode:"Height_1"
+  }]
+  VitalInfo.GetLatestPatientVitalSigns(get[0]).then(function(s){
+    console.log(s);
+    $scope.BMI.weight = parseInt(s.result);
+    VitalInfo.GetLatestPatientVitalSigns(get[1]).then(function(s){
+      $scope.BMI.height = parseInt(s.result);
+      console.log(s);
+    });
+  });
   $scope.test = function()
   {
     $scope.BMI.BMI=($scope.BMI.weight/($scope.BMI.height * $scope.BMI.height));
@@ -913,38 +942,66 @@ function($scope,$ionicModal,$stateParams,$state,extraInfo,$cordovaInAppBrowser,T
   };
   $scope.saveWH = function()
   {
-    console.log(BasicDtlInfo);
-    Data.Users.PostPatBasicInfoDetail(
-      [{ Patient: UserId,
-        CategoryCode: "BodySigns",
-        ItemCode: "Height",
-        ItemSeq: "1",
-        Value: $scope.BMI.height,
-        Description: "",
-        SortNo:"1",
-        revUserId: UserId,
-        TerminalName: "sample string 9",
-        TerminalIP: "sample string 10",
-        DeviceType: "11"
-      },
-      { Patient: UserId,
-        CategoryCode: "BodySigns",
-        ItemCode: "Weight",
-        ItemSeq: "1",
-        Value: $scope.BMI.weight,
-        Description: "",
-        SortNo:"1",
-        revUserId: UserId,
-        TerminalName: "sample string 9",
-        TerminalIP: "sample string 10",
-        DeviceType: "11"
-      }],function(s){
+    var save = [{
+      "UserId": UserId,
+      "RecordDate": extraInfo.DateTimeNow().fulldate,
+      "RecordTime": extraInfo.DateTimeNow().fulltime,
+      "ItemType": "Weight",
+      "ItemCode": 'Weight_1',
+      "Value": $scope.BMI.weight,
+      "Unit": "kg",
+      "revUserId": "UserId",
+      "TerminalName": "sample string 9",
+      "TerminalIP": "sample string 10",
+      "DeviceType": 11
+    },
+    {
+      "UserId": UserId,
+      "RecordDate": extraInfo.DateTimeNow().fulldate,
+      "RecordTime": extraInfo.DateTimeNow().fulltime,
+      "ItemType": "Height",
+      "ItemCode": 'Height_1',
+      "Value": $scope.BMI.height,
+      "Unit": "cm",
+      "revUserId": "UserId",
+      "TerminalName": "sample string 9",
+      "TerminalIP": "sample string 10",
+      "DeviceType": 11
+    }]
+    VitalInfo.PostPatientVitalSigns(save[0]).then(function(s){
+      console.log(s);
+      VitalInfo.PostPatientVitalSigns(save[1]).then(function(s){
         console.log(s);
-        alert("保存成功！");
-    });
+        alert("保存成功");
+      })
+    })
   }
 }])
+.controller('bloodglucosecontroller',['$scope','Data','Storage', 'VitalInfo','extraInfo', function($scope,Data,Storage,VitalInfo,extraInfo){
+  console.log('bloodglucosecontroller');
+  $scope.bloodglucose={"select":'早餐前',"mvalue":"","tvalue":"123"};
 
+  $scope.savebloodglucose = function()
+  {
+    var save = {
+      "UserId": "PID201506180013",
+      "RecordDate": extraInfo.DateTimeNow().fulldate,
+      "RecordTime": extraInfo.DateTimeNow().fulltime,
+      "ItemType": "BloodSugar",
+      "ItemCode": extraInfo.TransformBloodglucoseCode($scope.bloodglucose.select),
+      "Value": $scope.bloodglucose.mvalue,
+      "Unit": "mmol/L",
+      "revUserId": "PID201506180013",
+      "TerminalName": "sample string 9",
+      "TerminalIP": "sample string 10",
+      "DeviceType": 11
+    }
+    console.log(save);
+    VitalInfo.PostPatientVitalSigns(save).then(function(s){
+      console.log(s);
+    })
+  }
+}])
 .controller('alertcontroller',['$scope', '$timeout', '$ionicModal', '$ionicHistory', '$cordovaDatePicker','$cordovaLocalNotification','NotificationService',
 function($scope, $timeout, $ionicModal,$ionicHistory, $cordovaDatePicker,$cordovaLocalNotification, NotificationService) {
   // $scope.nvGoback = function() {
